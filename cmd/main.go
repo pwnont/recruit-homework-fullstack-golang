@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"sort"
 )
 
 /*
@@ -19,6 +20,20 @@ func Ex1UniqueNames(a, b []string) []string {
 
 	//
 	// YOUR CODE HERE
+	resultMap := make(map[string]bool)
+	for _, name := range a {
+		resultMap[name] = true
+	}
+	for _, name := range b {
+		resultMap[name] = true
+	}
+
+	result = make([]string, 0, len(resultMap))
+	for name := range resultMap {
+		result = append(result, name)
+	}
+
+	sort.Strings(result)
 	//
 
 	return result
@@ -35,15 +50,30 @@ func Ex2GetUserInfo(id int) (UserInfo, error) {
 	// YOUR CODE HERE
 	//
 
-	user, _ := GetUserBasicInfo(id)
-	GetUserAddress(id)
+	//user, _ := GetUserBasicInfo(id)
+	//GetUserAddress(id)
+	//return user, nil
+
+	user, err := GetUserBasicInfo(id)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	address, err := GetUserAddress(id)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	user.Address = address
 	return user, nil
+	
 }
 
 /*
 EX3. improve this function
 */
 func Ex3FileOperation() error {
+	/*OLD
 	fmt.Println("Opening a file ex3.txt")
 	file, _ := os.OpenFile("../assets/ex3.txt", os.O_RDWR|os.O_APPEND, 0644)
 
@@ -56,6 +86,40 @@ func Ex3FileOperation() error {
 
 	defer file.Close()
 	return nil
+	*/
+	filePath := "../assets/ex3.txt"
+	fmt.Println("Opening a file", filePath)
+
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_APPEND, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %v", filePath, err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fmt.Printf("line: %s\n", scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to scan file %s: %v", filePath, err)
+	}
+
+	text := "\r\nAppend this text to a file in Go"
+	if _, err := file.WriteString(text); err != nil {
+		return fmt.Errorf("failed to write to file %s: %v", filePath, err)
+	}
+
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("failed to close file %s: %v", filePath, err)
+	}
+
+	return nil
+	/*improved
+	1. if an error occurs, the function returns an error message indicating that the file could not be opened.
+	2. if an error occurs, the function returns an error message indicating that the file could not be scanned.
+	3. if an error occurs, the function returns an error message indicating that the file could not be written to.
+	4. if an error occurs, the function returns an error message indicating that the file could not be closed.
+	*/
 }
 
 /*
@@ -70,6 +134,11 @@ func Ex4MultiplesOf3and5(number int) int {
 
 	//
 	// YOUR CODE HERE
+	for i := 1; i < number; i++ {
+		if i%3 == 0 || i%5 == 0 {
+			sum += i
+		}
+	}
 	//
 
 	return sum
@@ -92,7 +161,7 @@ type UserAddress struct {
 
 func GetUserBasicInfo(id int) (UserInfo, error) {
 	// Simulate database slow query
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 	user := UserInfo{
 		ID:       id,
 		Name:     "John Ginger",
@@ -103,7 +172,7 @@ func GetUserBasicInfo(id int) (UserInfo, error) {
 }
 func GetUserAddress(id int) (UserAddress, error) {
 	// Simulate database slow query
-	time.Sleep(800 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 	userAddress := UserAddress{
 		AddressNo:   "62 ซ.นาคนิวาส 6",
 		SubDistrict: "ลาดพร้าว",
