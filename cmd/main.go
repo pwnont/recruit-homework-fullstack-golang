@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"sort"
+	"sync"
 )
 
 /*
@@ -54,7 +55,7 @@ func Ex2GetUserInfo(id int) (UserInfo, error) {
 	//GetUserAddress(id)
 	//return user, nil
 
-	user, err := GetUserBasicInfo(id)
+	/*user, err := GetUserBasicInfo(id)
 	if err != nil {
 		return UserInfo{}, err
 	}
@@ -66,7 +67,31 @@ func Ex2GetUserInfo(id int) (UserInfo, error) {
 
 	user.Address = address
 	return user, nil
-	
+	*/
+	var user UserInfo
+	var address UserAddress
+	var err error
+
+	var wg = sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		user, err = GetUserBasicInfo(id)
+	}()
+
+	go func() {
+		defer wg.Done()
+		address, err = GetUserAddress(id)
+	}()
+
+	wg.Wait()
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	user.Address = address
+	return user, nil
 }
 
 /*
@@ -161,7 +186,7 @@ type UserAddress struct {
 
 func GetUserBasicInfo(id int) (UserInfo, error) {
 	// Simulate database slow query
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	user := UserInfo{
 		ID:       id,
 		Name:     "John Ginger",
@@ -172,7 +197,7 @@ func GetUserBasicInfo(id int) (UserInfo, error) {
 }
 func GetUserAddress(id int) (UserAddress, error) {
 	// Simulate database slow query
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(800 * time.Millisecond)
 	userAddress := UserAddress{
 		AddressNo:   "62 ซ.นาคนิวาส 6",
 		SubDistrict: "ลาดพร้าว",
